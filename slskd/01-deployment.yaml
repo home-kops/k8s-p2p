@@ -1,0 +1,113 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: slskd
+  namespace: p2p
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: slskd
+  template:
+    metadata:
+      labels:
+        app: slskd
+    spec:
+      containers:
+      - name: slskd
+        image: msd117/slskd:0.1.10-0.22.2
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN"]
+        ports:
+        - name: web
+          containerPort: 5030
+        - name: incoming
+          containerPort: 50300
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: AUTO_UPDATE
+          value: "true"
+        - name: OPENVPN_USER
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: openvpn-user
+        - name: OPENVPN_PASSWD
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: openvpn-passwd
+        - name: SLSKD_SLSK_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: slskd-slsk-username
+        - name: SLSKD_SLSK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: slskd-slsk-password
+        - name: SLSKD_NO_AUTH
+          value: "true"
+        - name: SLSKD_REMOTE_CONFIGURATION
+          value: "true"
+        - name: SLSKD_APP_DIR
+          value: "/config/slskd"
+        - name: SLSKD_DOWNLOADS_DIR
+          value: "/downloads/complete"
+        - name: SLSKD_INCOMPLETE_DIR
+          value: "/downloads/incomplete"
+        - name: SLSKD_SHARED_DIR
+          value: "/shares"
+        - name: DEST_EMAIL_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: dest-email-address
+        - name: ORIGIN_EMAIL_AUTHUSER
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: origin-email-authuser
+        - name: ORIGIN_EMAIL_AUTHPASS
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: origin-email-authpass
+        - name: QUARANTINE_DIR
+          value: "/quarantine"
+        volumeMounts:
+        - name: dev-tun
+          mountPath: /dev/net/tun
+        - name: config
+          mountPath: /config
+        - name: downloads
+          mountPath: /downloads
+        - name: shares
+          mountPath: /shares
+        - name: nfs-downloads
+          mountPath: /nfs/downloads
+      volumes:
+      - name: dev-tun
+        hostPath:
+          path: /dev/net/tun
+      - name: config
+        persistentVolumeClaim:
+          claimName: slskd-config
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: p2p-downloads
+      - name: shares
+        nfs:
+          server: ${NFS_SERVER}
+          path: /volume1/data/media/shares
+      - name: nfs-downloads
+        nfs:
+          server: ${NFS_SERVER}
+          path: /volume1/data/media/downloads

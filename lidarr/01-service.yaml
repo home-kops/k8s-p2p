@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: lidarr-service
+  namespace: p2p
+spec:
+  selector:
+    app: lidarr
+  ports:
+  - port: 8686
+    targetPort: 8686
+    name: web
+    protocol: TCP
+  type: ClusterIP

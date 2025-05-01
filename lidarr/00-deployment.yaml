@@ -1,0 +1,47 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: lidarr
+  namespace: p2p
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: lidarr
+  template:
+    metadata:
+      labels:
+        app: lidarr
+    spec:
+      containers:
+      - name: lidarr
+        image: lscr.io/linuxserver/lidarr:2.11.2
+        ports:
+        - name: web
+          containerPort: 8686
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: music
+          mountPath: /music
+        - name: downloads
+          mountPath: /downloads
+      volumes:
+      - name: config
+        nfs:
+          server: ${NFS_SERVER}
+          path: /volume1/kubernetes/config/lidarr
+      - name: music
+        nfs:
+          server: ${NFS_SERVER}
+          path: /volume1/data/media/music
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: p2p-downloads

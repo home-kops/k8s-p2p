@@ -1,0 +1,47 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sonarr
+  namespace: p2p
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      containers:
+      - name: sonarr
+        image: lscr.io/linuxserver/sonarr:4.0.14
+        ports:
+        - name: web
+          containerPort: 8989
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: series
+          mountPath: /series
+        - name: downloads
+          mountPath: /downloads
+      volumes:
+      - name: config
+        nfs:
+          server: ${NFS_SERVER}
+          path: /volume1/kubernetes/config/sonarr
+      - name: series
+        nfs:
+          server: ${NFS_SERVER}
+          path: /volume1/data/media/series
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: p2p-downloads

@@ -1,0 +1,88 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: qbittorrent
+  namespace: p2p
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: qbittorrent
+  template:
+    metadata:
+      labels:
+        app: qbittorrent
+    spec:
+      containers:
+      - name: qbittorrent
+        image: msd117/qbittorrent:0.1.10-5.0.4-1
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN"]
+        ports:
+        - name: web
+          containerPort: 8080
+        - name: tcp-torrent
+          containerPort: 6881
+        - name: udp-torrent
+          containerPort: 6881
+          protocol: UDP
+        - name: jackett
+          containerPort: 9117
+        env:
+        - name: QBT_WEBUI_PORT
+          value: "8080"
+        - name: QBT_VERSION
+          value: "latest"
+        - name: OPENVPN_USER
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: openvpn-user
+        - name: OPENVPN_PASSWD
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: openvpn-passwd
+        - name: DEST_EMAIL_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: dest-email-address
+        - name: ORIGIN_EMAIL_AUTHUSER
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: origin-email-authuser
+        - name: ORIGIN_EMAIL_AUTHPASS
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: origin-email-authpass
+        - name: WEB_UI_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: p2p-secrets
+              key: qb-webui-password
+        - name: QUARANTINE_DIR
+          value: "/quarantine"              
+        volumeMounts:
+        - name: dev-tun
+          mountPath: /dev/net/tun
+        - name: config
+          mountPath: /config
+        - name: downloads
+          mountPath: /downloads
+      volumes:
+      - name: dev-tun
+        hostPath:
+          path: /dev/net/tun
+      - name: config
+        nfs:
+          server: ${NFS_SERVER}
+          path: /volume1/kubernetes/config/qbittorrent
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: p2p-downloads

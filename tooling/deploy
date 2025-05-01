@@ -1,0 +1,107 @@
+#!/bin/bash
+
+set -eu
+
+dry_run_mode="none"
+
+while getopts "d" flag; do
+    case $flag in
+    d)
+        echo "Running dry-run mode..."
+        dry_run_mode="server"
+        ;;
+    \?)
+        echo "Wrong argument"
+        exit 1
+        ;;
+    esac
+done
+
+project_path="$(git rev-parse --show-toplevel)"
+
+# Deploy common resources
+echo -e "\nDeploying common resources..."
+common_dir="${project_path}/common"
+
+# Deploy namespace
+kubectl apply -f "${common_dir}"/00-namespace.yaml
+
+kubectl apply -f "${common_dir}" --dry-run="${dry_run_mode}"
+echo -e "Done!\n"
+
+# Jellyseerr
+echo -e "\nDeploying Jellyseerr..."
+jellyseerr_dir="${project_path}/jellyseerr"
+
+# Replace env variables
+envsubst <"${jellyseerr_dir}"/00-deployment.yaml | sponge "${jellyseerr_dir}"/00-deployment.yaml
+envsubst <"${jellyseerr_dir}"/02-ingress-route.yaml | sponge "${jellyseerr_dir}"/02-ingress-route.yaml
+
+kubectl apply -f "${jellyseerr_dir}" --dry-run="${dry_run_mode}"
+echo -e "Done!\n"
+
+# Lidarr
+echo -e "\nDeploying Lidarr..."
+lidarr_dir="${project_path}/lidarr"
+
+# Replace env variables
+envsubst <"${lidarr_dir}"/00-deployment.yaml | sponge "${lidarr_dir}"/00-deployment.yaml
+envsubst <"${lidarr_dir}"/02-ingress-route.yaml | sponge "${lidarr_dir}"/02-ingress-route.yaml
+
+kubectl apply -f "${lidarr_dir}" --dry-run="${dry_run_mode}"
+echo -e "Done!\n"
+
+# Prowlarr
+echo -e "\nDeploying Prowlarr..."
+prowlarr_dir="${project_path}/prowlarr"
+
+# Replace env variables
+envsubst <"${prowlarr_dir}"/00-deployment.yaml | sponge "${prowlarr_dir}"/00-deployment.yaml
+envsubst <"${prowlarr_dir}"/02-ingress-route.yaml | sponge "${prowlarr_dir}"/02-ingress-route.yaml
+
+kubectl apply -f "${prowlarr_dir}" --dry-run="${dry_run_mode}"
+echo -e "Done!\n"
+
+# Radarr
+echo -e "\nDeploying Radarr..."
+radarr_dir="${project_path}/radarr"
+
+# Replace env variables
+envsubst <"${radarr_dir}"/00-deployment.yaml | sponge "${radarr_dir}"/00-deployment.yaml
+envsubst <"${radarr_dir}"/02-ingress-route.yaml | sponge "${radarr_dir}"/02-ingress-route.yaml
+
+kubectl apply -f "${radarr_dir}" --dry-run="${dry_run_mode}"
+echo -e "Done!\n"
+
+# qBittorrent
+echo -e "\nDeploying qBittorrent..."
+qbittorrent_dir="${project_path}/qbittorrent"
+
+# Replace env variables
+envsubst <"${qbittorrent_dir}"/00-deployment.yaml | sponge "${qbittorrent_dir}"/00-deployment.yaml
+envsubst <"${qbittorrent_dir}"/02-ingress-route.yaml | sponge "${qbittorrent_dir}"/02-ingress-route.yaml
+
+kubectl apply -f "${qbittorrent_dir}" --dry-run="${dry_run_mode}"
+echo -e "Done!\n"
+
+# slskd
+echo -e "\nDeploying slskd..."
+slskd_dir="${project_path}/slskd"
+
+# Replace env variables
+envsubst <"${slskd_dir}"/01-deployment.yaml | sponge "${slskd_dir}"/01-deployment.yaml
+envsubst <"${slskd_dir}"/03-ingress-route.yaml | sponge "${slskd_dir}"/03-ingress-route.yaml
+
+kubectl apply -f "${slskd_dir}" --dry-run="${dry_run_mode}"
+echo -e "Done!\n"
+
+# Sonarr
+echo -e "\nDeploying Sonarr..."
+sonarr_dir="${project_path}/sonarr"
+
+# Replace env variables
+envsubst <"${sonarr_dir}"/00-deployment.yaml | sponge "${sonarr_dir}"/00-deployment.yaml
+envsubst <"${sonarr_dir}"/02-ingress-route.yaml | sponge "${sonarr_dir}"/02-ingress-route.yaml
+
+kubectl apply -f "${sonarr_dir}" --dry-run="${dry_run_mode}"
+echo -e "Done!\n"

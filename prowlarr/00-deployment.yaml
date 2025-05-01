@@ -1,0 +1,44 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: prowlarr
+  namespace: p2p
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: prowlarr
+  template:
+    metadata:
+      labels:
+        app: prowlarr
+    spec:
+      containers:
+      - name: prowlarr
+        image: lscr.io/linuxserver/prowlarr:1.32.2
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN"]
+        ports:
+        - name: web
+          containerPort: 9696
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: downloads
+          mountPath: /downloads
+      volumes:
+      - name: config
+        nfs:
+          server: ${NFS_SERVER}
+          path: /volume1/kubernetes/config/prowlarr
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: p2p-downloads

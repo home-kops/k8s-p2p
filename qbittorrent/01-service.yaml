@@ -1,0 +1,26 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: qbittorrent-service
+  namespace: p2p
+spec:
+  selector:
+    app: qbittorrent
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: web
+    protocol: TCP
+  - port: 6881
+    targetPort: 6881
+    name: tcp-torrent
+    protocol: TCP
+  - port: 6881
+    targetPort: 6881
+    name: udp-torrent
+    protocol: UDP
+  - port: 9117
+    targetPort: 9117
+    name: jackett
+    protocol: TCP
+  type: ClusterIP

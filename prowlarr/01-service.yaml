@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: prowlarr-service
+  namespace: p2p
+spec:
+  selector:
+    app: prowlarr
+  ports:
+  - port: 9696
+    targetPort: 9696
+    name: web
+    protocol: TCP
+  type: ClusterIP

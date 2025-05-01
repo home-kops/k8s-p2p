@@ -1,0 +1,47 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: radarr
+  namespace: p2p
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: radarr
+  template:
+    metadata:
+      labels:
+        app: radarr
+    spec:
+      containers:
+      - name: radarr
+        image: lscr.io/linuxserver/radarr:5.21.1
+        ports:
+        - name: web
+          containerPort: 7878
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: movies
+          mountPath: /movies
+        - name: downloads
+          mountPath: /downloads
+      volumes:
+      - name: config
+        nfs:
+          server: ${NFS_SERVER}
+          path: /volume1/kubernetes/config/radarr
+      - name: movies
+        nfs:
+          server: ${NFS_SERVER}
+          path: /volume1/data/media/movies
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: p2p-downloads

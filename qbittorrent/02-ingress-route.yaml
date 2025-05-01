@@ -1,0 +1,33 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: qbittorrent-ingress
+  namespace: p2p
+spec:
+  entryPoints:
+  - websecure
+  - web
+  routes:
+  - match: Host(`qb.${DOMAIN}`)
+    kind: Rule
+    services:
+    - kind: Service
+      name: qbittorrent-service
+      port: web
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jackett-ingress
+  namespace: p2p
+spec:
+  entryPoints:
+  - websecure
+  - web
+  routes:
+  - match: Host(`jackett.${DOMAIN}`)
+    kind: Rule
+    services:
+    - kind: Service
+      name: qbittorrent-service
+      port: jackett

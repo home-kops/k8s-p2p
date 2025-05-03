@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: qbittorrent
-        image: msd117/qbittorrent:0.1.10-5.0.4-1
+        image: msd117/qbittorrent:0.0.1
         securityContext:
           capabilities:
             add: ["NET_ADMIN"]
